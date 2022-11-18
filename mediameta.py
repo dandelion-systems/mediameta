@@ -23,158 +23,25 @@
 from functools import reduce
 import os
 import sys
-from typing import Literal
+
+from dataroutines import uint_32
+from dataroutines import uint_16
+from dataroutines import uint_8
+from dataroutines import sint_32
+from dataroutines import sint_16
+from dataroutines import sint_8
+from dataroutines import str_b
+
+from tags import _TiffTags
+from tags import _ExifTags
+from tags import _GPSTags
 
 class UnsupportedMediaFile(Exception):
 	pass
 
-_TiffTags = {
-	0x0100: 'ImageWidth',
-	0x0101: 'ImageHeight',
-	0x0102: 'BitsPerSample',
-	0x0103: 'Compression',
-	0x0106: 'PhotometricInterpretation',
-	0x010E: 'ImageDescription',
-	0x010F: 'Make',
-	0x0110: 'Model',
-	0x0111: 'StripOffsets',
-	0x0112: 'Orientation',
-	0x0115: 'SamplesPerPixel',
-	0x0116: 'RowsPerStrip',
-	0x0117: 'StripByteCounts',
-	0x011A: 'XResolution',
-	0x011B: 'YResolution',
-	0x011C: 'PlanarConfiguration',
-	0x0128: 'ResolutionUnit',
-	0x012D: 'TransferFunction',
-	0x0131: 'Software',
-	0x0132: 'DateTime',
-	0x013B: 'Artist',
-	0x013C: 'HostComputer',
-	0x013E: 'WhitePoint',
-	0x013F: 'PrimaryChromaticities',
-	0x0201: 'JPEGInterchangeFormat',
-	0x0202: 'JPEGInterchangeFormatLength',
-	0x0211: 'YCbCrCoefficients',
-	0x0212: 'YCbCrSubSampling',
-	0x0213: 'YCbCrPositioning',
-	0x0214: 'ReferenceBlackWhite',
-	0x8298: 'Copyright',
-	0x8769: 'ExifIFDPointer',
-	0x8825: 'GPSInfoIFDPointer',
-	0xA005: 'InteroperabilityIFDPointer'
-}
-
-_ExifTags = {
-	0x0001: 'InteroperabilityIndex',
-	0x0002: 'InteroperabilityVersion',
-	0x1000: 'RelatedImageFileFormat',
-	0x1001: 'RelatedImageWidth',
-	0x1002: 'RelatedImageLength',
-	0x829A: 'ExposureTime',
-	0x829D: 'FNumber',
-	0x8822: 'ExposureProgram',
-	0x8824: 'SpectralSensitivity',
-	0x8827: 'ISOSpeedRatings',
-	0x8828: 'OECF',
-	0x9000: 'ExifVersion',
-	0x9003: 'DateTimeOriginal',
-	0x9004: 'DateTimeDigitized',
-	0x9101: 'ComponentsConfiguration',
-	0x9102: 'CompressedBitsPerPixel',
-	0x9201: 'ShutterSpeedValue',
-	0x9202: 'ApertureValue',
-	0x9203: 'BrightnessValue',
-	0x9204: 'ExposureBias',
-	0x9205: 'MaxApertureValue',
-	0x9206: 'SubjectDistance',
-	0x9207: 'MeteringMode',
-	0x9208: 'LightSource',
-	0x9209: 'Flash',
-	0x920A: 'FocalLength',
-	0x9214: 'SubjectArea',
-	0x927C: 'MakerNote',
-	0x9286: 'UserComment',
-	0x9290: 'SubsecTime',
-	0x9291: 'SubsecTimeOriginal',
-	0x9292: 'SubsecTimeDigitized',
-	0xA000: 'FlashpixVersion',
-	0xA001: 'ColorSpace',
-	0xA002: 'PixelXDimension',
-	0xA003: 'PixelYDimension',
-	0xA004: 'RelatedSoundFile',
-	0xA005: 'InteroperabilityIFDPointer',
-	0xA20B: 'FlashEnergy',
-	0xA20C: 'SpatialFrequencyResponse',
-	0xA20E: 'FocalPlaneXResolution',
-	0xA20F: 'FocalPlaneYResolution',
-	0xA210: 'FocalPlaneResolutionUnit',
-	0xA214: 'SubjectLocation',
-	0xA215: 'ExposureIndex',
-	0xA217: 'SensingMethod',
-	0xA300: 'FileSource',
-	0xA301: 'SceneType',
-	0xA302: 'CFAPattern',
-	0xA401: 'CustomRendered',
-	0xA402: 'ExposureMode',
-	0xA403: 'WhiteBalance',
-	0xA404: 'DigitalZoomRation',
-	0xA405: 'FocalLengthIn35mmFilm',
-	0xA406: 'SceneCaptureType',
-	0xA407: 'GainControl',
-	0xA408: 'Contrast',
-	0xA409: 'Saturation',
-	0xA40A: 'Sharpness',
-	0xA40B: 'DeviceSettingDescription',
-	0xA40C: 'SubjectDistanceRange',
-	0xA420: 'ImageUniqueID',
-	0xA430: 'CameraOwnerName',
-	0xA431: 'BodySerialNumber',
-	0xA432: 'LensSpecification',
-	0xA433: 'LensMake',
-	0xA434: 'LensModel',
-	0xA435: 'LensSerialNumber',
-	0xA500: 'Gamma'
-}
-
-_GPSTags = {
-	0x0000: 'GPSVersionID',
-	0x0001: 'GPSLatitudeRef',
-	0x0002: 'GPSLatitude',
-	0x0003: 'GPSLongitudeRef',
-	0x0004: 'GPSLongitude',
-	0x0005: 'GPSAltitudeRef',
-	0x0006: 'GPSAltitude',
-	0x0007: 'GPSTimeStamp',
-	0x0008: 'GPSSatellites',
-	0x0009: 'GPSStatus',
-	0x000A: 'GPSMeasureMode',
-	0x000B: 'GPSDOP',
-	0x000C: 'GPSSpeedRef',
-	0x000D: 'GPSSpeed',
-	0x000E: 'GPSTrackRef',
-	0x000F: 'GPSTrack',
-	0x0010: 'GPSImgDirectionRef',
-	0x0011: 'GPSImgDirection',
-	0x0012: 'GPSMapDatum',
-	0x0013: 'GPSDestLatitudeRef',
-	0x0014: 'GPSDestLatitude',
-	0x0015: 'GPSDestLongitudeRef',
-	0x0016: 'GPSDestLongitude',
-	0x0017: 'GPSDestBearingRef',
-	0x0018: 'GPSDestBearing',
-	0x0019: 'GPSDestDistanceRef',
-	0x001A: 'GPSDestDistance',
-	0x001B: 'GPSProcessingMethod',
-	0x001C: 'GPSAreaInformation',
-	0x001D: 'GPSDateStamp',
-	0x001E: 'GPSDifferential',
-	0x001F: 'GPSHPositioningError'
-}
-
 class MediaMetadata:
-	
-	_tags = {}				# must follow {'tag_name':[tag_values_list]} format even if there is only 1 value for tag_name
+	# _tags follows {'tag_name':[tag_values_list]} format even if there is only 1 value for tag_name
+	_tags = {}				
 
 	_file_name = ''
 	_file_extension = ''
@@ -188,40 +55,6 @@ class MediaMetadata:
 		self._file_extension = ext.upper()
 
 		self._international_encoding = encoding
-
-	def __get_binary(self, byte_array:bytes, start_index:int, byte_count:int, byte_order:Literal['little','big'], signed=False):
-		integers = [byte_array[start_index + i] for i in range(byte_count)]
-		bytes = [integer.to_bytes(1, byte_order, signed=signed) for integer in integers]
-		return reduce(lambda a, b: a + b, bytes)
-
-	def _get_uint_32(self, byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
-		return int.from_bytes(self.__get_binary(byte_array, start_index, 4, byte_order), byte_order)
-
-	def _get_uint_16(self, byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
-		return int.from_bytes(self.__get_binary(byte_array, start_index, 2, byte_order), byte_order)
-
-	def _get_uint_8(self, byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
-		return int.from_bytes(self.__get_binary(byte_array, start_index, 1, byte_order), byte_order)
-
-	def _get_sint_32(self, byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
-		return int.from_bytes(self.__get_binary(byte_array, start_index, 4, byte_order), byte_order, signed=True)
-
-	def _get_sint_16(self, byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
-		return int.from_bytes(self.__get_binary(byte_array, start_index, 2, byte_order), byte_order, signed=True)
-	
-	def _get_sint_8(self, byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
-		return int.from_bytes(self.__get_binary(byte_array, start_index, 1, byte_order), byte_order, signed=True)
-
-	def _get_str(self, byte_array:bytes, start_index:int, byte_count:int):
-		bytes_list = []
-		integers = [byte_array[start_index + i] for i in range(byte_count)]
-		for integer in integers:
-			if integer != 0:
-				bytes_list.append(integer.to_bytes(1, sys.byteorder, signed=False))
-			else:
-				break
-		bytes = b''.join(bytes_list)
-		return bytes.decode(encoding=self._international_encoding, errors='replace')
 	
 	def __getitem__(self, key:str):
 		value = []
@@ -240,6 +73,8 @@ class MediaMetadata:
 	def __str__(self):
 		as_string = ''
 		for (key, value) in self.all():
+			if key == 'MakerNote': 								# this tag's value might get long and contain binary data 
+				if len(value) > 20: value = value[:20] + '...'	# so we cut it short in print
 			as_string += key + '\t' + str(value) + os.linesep
 		return as_string
 
@@ -276,7 +111,7 @@ class ImageMetadata(MediaMetadata):
 		if raw_meta_data is None:
 			raise UnsupportedMediaFile
 		
-		(tiff_tags, exif_tags, gps_tags) = self.__interpret_meta_data(raw_meta_data)
+		(tiff_tags, exif_tags, gps_tags) = self.__parse_meta_data(raw_meta_data)
 
 		self._tags = tiff_tags | exif_tags | gps_tags
 
@@ -299,15 +134,16 @@ class ImageMetadata(MediaMetadata):
 			#print('Bad SOI marker in ' + file_name +'. Not a valid JPEG.')
 			return exif_raw_data
 
-		# APP1 is mandatory FIRST marker after SOI (EXIF 2.3, p4.5.5, Table 2 - page 6)
-		# Search for APP1 marker 0xFFE1 with big endian byte order.
+		# APP1 EXIF (0xFFE, big endian) is mandatory FIRST marker after SOI, 
+		# see (EXIF 2.3, p4.5.5, Table 2 - page 6). But we search for it to 
+		# jump over APP0 JFIF (0xFFE0) marker in case it is present.
 		offset = 2
 		f.seek(offset)
 		b2 = int.from_bytes(f.read(2), byteorder='big')
 		offset += 2
-		while b2 != 0xFFE1 and offset < file_size - 2:
-			b2 = int.from_bytes(f.read(2), byteorder='big')
-			f.seek(offset + b2)
+		while b2 != 0xFFE1 and offset < file_size - 2:							# FIXME: the first occurence of 0xFFE1 must be EXIF
+			b2 = int.from_bytes(f.read(2), byteorder='big')						# so we stop at it for now. But APP1 XMP (also 0xFFE1) 
+			f.seek(offset + b2)													# and ICC (0xFFE2) can follow. Would be nice to add them.
 			offset += 2 + b2
 			b2 = int.from_bytes(f.read(2), byteorder='big')
 
@@ -349,8 +185,8 @@ class ImageMetadata(MediaMetadata):
 		data = f.read(metadata_size)
 		exif_offset = -1
 		iloc_offset = -1
-		for i in range(metadata_size-4): # '-4' as we are reading by 4-byte values and the last 3 readings would otherwise go out of range
-			b4 = data[i:i+4]
+		for i in range(metadata_size-4): 								# '-4' as we are reading by 4-byte values and 
+			b4 = data[i:i+4]											# the last 3 readings would otherwise go out of range
 			if b4 == b'Exif':
 				exif_offset = i
 			elif b4 == b'iloc':
@@ -359,17 +195,17 @@ class ImageMetadata(MediaMetadata):
 		if exif_offset == -1 or iloc_offset == -1:
 			return exif_raw_data
 
-		exif_item_index = self._get_uint_16(byte_array=data, start_index=exif_offset - 4, byte_order='big')
+		exif_item_index = uint_16(byte_array=data, start_index=exif_offset - 4, byte_order='big')
 
 		# Scan through ilocs to find exif item location
 		i = iloc_offset + 12
 		while i < metadata_size - 16:
-			item_index = self._get_uint_16(byte_array=data, start_index=i, byte_order='big')
+			item_index = uint_16(byte_array=data, start_index=i, byte_order='big')
 
 			if item_index == exif_item_index:
-				exif_location = self._get_uint_32(byte_array=data, start_index=i + 8, byte_order='big')
-				exif_size = self._get_uint_32(byte_array=data, start_index=i + 12, byte_order='big')
-				# Check prefix at exif exifOffset
+				exif_location = uint_32(byte_array=data, start_index=i + 8, byte_order='big')
+				exif_size = uint_32(byte_array=data, start_index=i + 12, byte_order='big')
+				# FIXME: Check EXIF prefix at exif_location
 				f.seek(exif_location)
 				prefix_size = 4 + int.from_bytes(f.read(4), byteorder='big')
 				f.seek(exif_location + prefix_size)
@@ -380,7 +216,7 @@ class ImageMetadata(MediaMetadata):
 
 		return exif_raw_data
 
-	def __interpret_meta_data(self, exif_data:bytes):
+	def __parse_meta_data(self, exif_data:bytes):
 		tiff_tags = {}
 		exif_tags = {}
 		gps_tags  = {}
@@ -394,10 +230,10 @@ class ImageMetadata(MediaMetadata):
 			return (tiff_tags, exif_tags, gps_tags)
 
 		# Valdity check 2: the third and fourth bytes contain a 0x002A magic number
-		if self._get_uint_16(byte_array=exif_data, start_index=2, byte_order=byte_order) != 0x002A:
+		if uint_16(byte_array=exif_data, start_index=2, byte_order=byte_order) != 0x002A:
 			return (tiff_tags, exif_tags, gps_tags)
 
-		ifd1_offset = self._get_uint_32(byte_array=exif_data, start_index=4, byte_order=byte_order)
+		ifd1_offset = uint_32(byte_array=exif_data, start_index=4, byte_order=byte_order)
 
 		# Valdity check 3: the first IFD must be reachable
 		if ifd1_offset < 8 or ifd1_offset >= len(exif_data):
@@ -413,13 +249,15 @@ class ImageMetadata(MediaMetadata):
 			gps_offset = tiff_tags['GPSInfoIFDPointer'][0]
 			gps_tags = self.__read_tags(data=exif_data, offset=gps_offset, tags_to_search=_GPSTags, byte_order=byte_order)
 
+		# FIXME: Interoperability tags are not parsed.
 		return (tiff_tags, exif_tags, gps_tags)
 
 	def __read_tag_value(self, data:bytes, offset:int, tag:int, byte_order:str):
-		tag_type = self._get_uint_16(byte_array=data, start_index=offset + 2, byte_order=byte_order)
-		num_values = self._get_uint_32(byte_array=data, start_index=offset + 4, byte_order=byte_order)
-		value_offset = self._get_uint_32(byte_array=data, start_index=offset + 8, byte_order=byte_order)
+		tag_type = uint_16(byte_array=data, start_index=offset + 2, byte_order=byte_order)
+		num_values = uint_32(byte_array=data, start_index=offset + 4, byte_order=byte_order)
+		value_offset = uint_32(byte_array=data, start_index=offset + 8, byte_order=byte_order)
 		values = []
+		encoding = self._international_encoding
 
 		match tag_type:
 			case 1: # 1 - byte, 8-bit unsigned int
@@ -436,7 +274,7 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 
-				values.append(self._get_str(byte_array=data, start_index=where_to_look, byte_count=num_values-1))
+				values.append(str_b(byte_array=data, start_index=where_to_look, byte_count=num_values-1, encoding=encoding))
 
 			case 3: # short, 16 bit int
 				if num_values <= 2:
@@ -444,7 +282,7 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 		
-				values = [self._get_uint_16(byte_array=data, start_index=where_to_look + i, byte_order=byte_order) for i in range(num_values)]
+				values = [uint_16(byte_array=data, start_index=where_to_look + i, byte_order=byte_order) for i in range(num_values)]
 
 			case 4: # 4 - long, 32 bit int
 				if num_values == 1:
@@ -452,13 +290,13 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 		
-				values = [self._get_uint_32(byte_array=data, start_index=where_to_look + i, byte_order=byte_order) for i in range(num_values)]
+				values = [uint_32(byte_array=data, start_index=where_to_look + i, byte_order=byte_order) for i in range(num_values)]
 
 			case 5: # 5 - rational, two long values, first is numerator, second is denominator
 				where_to_look = value_offset
 				for i in range(num_values):
-					numerator = self._get_uint_32(byte_array=data, start_index=where_to_look + i*8, byte_order=byte_order)
-					denominator = self._get_uint_32(byte_array=data, start_index=where_to_look + i*8 + 4, byte_order=byte_order)
+					numerator = uint_32(byte_array=data, start_index=where_to_look + i*8, byte_order=byte_order)
+					denominator = uint_32(byte_array=data, start_index=where_to_look + i*8 + 4, byte_order=byte_order)
 					values.append(str(numerator) + '/' + str(denominator))
 
 			case 7: # 7 - undefined, value depending on field
@@ -467,33 +305,32 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 
-				values.append(self._get_str(byte_array=data, start_index=where_to_look, byte_count=num_values))
-				#values.append(_MediaMetadata__get_binary(self, byte_array=data, start_index=where_to_look, byte_count=num_values, byte_order=byte_order))
-			
+				values.append(str_b(byte_array=data, start_index=where_to_look, byte_count=num_values, encoding=encoding))
+				
 			case 9: # 9 - slong, 32 bit signed int.
 				if num_values == 1:
 					where_to_look = offset + 8
 				else:
 					where_to_look = value_offset
 		
-				values = [self._get_sint_32(byte_array=data, start_index=where_to_look + i, byte_order=byte_order) for i in range(num_values)]
+				values = [sint_32(byte_array=data, start_index=where_to_look + i, byte_order=byte_order) for i in range(num_values)]
 
 			case 10: #10 - signed rational, two long values, first is numerator, second is denominator
 				where_to_look = value_offset
 				for i in range(num_values):
-					numerator = self._get_sint_32(byte_array=data, start_index=where_to_look + i*8, byte_order=byte_order)
-					denominator = self._get_sint_32(byte_array=data, start_index=where_to_look + i*8 + 4, byte_order=byte_order)
+					numerator = sint_32(byte_array=data, start_index=where_to_look + i*8, byte_order=byte_order)
+					denominator = sint_32(byte_array=data, start_index=where_to_look + i*8 + 4, byte_order=byte_order)
 					values.append(str(numerator) + '/' + str(denominator))
 
 		return values
 
 	def __read_tags(self, data:bytes, offset:int, tags_to_search:dict, byte_order:str):
-		entries = self._get_uint_16(data, offset, byte_order)
+		entries = uint_16(data, offset, byte_order)
 		tags = {}
 
 		for i in range(entries):
 			entry_offset = offset + i * 12 + 2 # entry_offset is relevant to TIFF headers (i.e. 0x4949 or 0x4D4D byte order marker has an offset of 0
-			tag_marker = self._get_uint_16(byte_array=data, start_index=entry_offset, byte_order=byte_order)
+			tag_marker = uint_16(byte_array=data, start_index=entry_offset, byte_order=byte_order)
 			if tag_marker in tags_to_search:
 				key = tags_to_search[tag_marker]
 			else:
@@ -519,8 +356,8 @@ class VideoMetadata(MediaMetadata):
 			raise UnsupportedMediaFile
 
 		for i in range(len(tags_list)):
-			key = self._get_str(tags_list[i][0], 0, len(tags_list[i][0]))
-			value = self._get_str(tags_list[i][1], 0, len(tags_list[i][1]))
+			key = str_b(tags_list[i][0], 0, len(tags_list[i][0], encoding=encoding))
+			value = str_b(tags_list[i][1], 0, len(tags_list[i][1], encoding=encoding))
 			self._tags[key] = [value]
 
 	def __find_meta_mov(self, file_name:str):
