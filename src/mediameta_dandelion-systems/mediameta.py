@@ -24,17 +24,17 @@ from functools import reduce
 import os
 import sys
 
-from dataroutines import uint_32
-from dataroutines import uint_16
-from dataroutines import uint_8
-from dataroutines import sint_32
-from dataroutines import sint_16
-from dataroutines import sint_8
-from dataroutines import str_b
+from .dataroutines import uint_32
+from .dataroutines import uint_16
+from .dataroutines import uint_8
+from .dataroutines import sint_32
+from .dataroutines import sint_16
+from .dataroutines import sint_8
+from .dataroutines import str_b
 
-from tags import _TiffTags
-from tags import _ExifTags
-from tags import _GPSTags
+from .tags import _TiffTags
+from .tags import _ExifTags
+from .tags import _GPSTags
 
 class UnsupportedMediaFile(Exception):
 	pass
