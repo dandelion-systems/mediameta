@@ -23,17 +23,17 @@
 
 import os
 
-from .dataroutines import uint_32
-from .dataroutines import uint_16
-from .dataroutines import uint_8
-from .dataroutines import sint_32
-from .dataroutines import sint_16
-from .dataroutines import sint_8
-from .dataroutines import str_b
+from mmdandelionsystems.dataroutines import uint_32
+from mmdandelionsystems.dataroutines import uint_16
+from mmdandelionsystems.dataroutines import uint_8
+from mmdandelionsystems.dataroutines import sint_32
+from mmdandelionsystems.dataroutines import sint_16
+from mmdandelionsystems.dataroutines import sint_8
+from mmdandelionsystems.dataroutines import str_b
 
-from .tags import _TiffTags
-from .tags import _ExifTags
-from .tags import _GPSTags
+from mmdandelionsystems.tags import _TiffTags
+from mmdandelionsystems.tags import _ExifTags
+from mmdandelionsystems.tags import _GPSTags
 
 class UnsupportedMediaFile(Exception):
 	pass

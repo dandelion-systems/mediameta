@@ -21,7 +21,7 @@
 	along with mediameta. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import mediameta as mm
+import mmdandelionsystems.mediameta as mm
 
 _TiffTags = mm._TiffTags
 _ExifTags = mm._ExifTags
