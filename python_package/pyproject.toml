@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mmdandelionsystems"
+version = "0.0.5"
+authors = [
+  { name="Dandelion Systems", email="dandelion.systems@gmail.com" },
+]
+description = "Photo and Video metadata parsing package"
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+keywords = [
+	"Metadata", "parsing",
+    "EXIF", "GPS",
+	"TIFF", "TIF",
+    "JPEG", "JPG", 
+    "HEIC",
+	"MOV", "QuickTime",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/dandelion-systems/mediameta"
+"Bug Tracker" = "https://github.com/dandelion-systems/mediameta/issues"
