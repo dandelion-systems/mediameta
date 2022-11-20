@@ -135,7 +135,7 @@ class ImageMetadata(MediaMetadata):
 
 		# Check the SOI (Start Of Image) marker.
 		# Must always be 0xFFD8, big endian byte order.
-		b2 = int.from_bytes(f.read(2), byteorder='big')     # b2 - two bytes
+		b2 = int.from_bytes(f.read(2), 'big')     # b2 - two bytes
 		
 		if b2 != 0xFFD8:
 			#print('Bad SOI marker in ' + file_name +'. Not a valid JPEG.')
@@ -146,16 +146,16 @@ class ImageMetadata(MediaMetadata):
 		# jump over APP0 JFIF (0xFFE0) marker in case it is present.
 		offset = 2
 		f.seek(offset)
-		b2 = int.from_bytes(f.read(2), byteorder='big')
+		b2 = int.from_bytes(f.read(2), 'big')
 		offset += 2
 		while b2 != 0xFFE1 and offset < file_size - 2:							# FIXME: the first occurence of 0xFFE1 must be EXIF
-			b2 = int.from_bytes(f.read(2), byteorder='big')						# so we stop at it for now. But APP1 XMP (also 0xFFE1) 
+			b2 = int.from_bytes(f.read(2), 'big')						# so we stop at it for now. But APP1 XMP (also 0xFFE1) 
 			f.seek(offset + b2)													# and ICC (0xFFE2) can follow. Would be nice to add them.
 			offset += 2 + b2
-			b2 = int.from_bytes(f.read(2), byteorder='big')
+			b2 = int.from_bytes(f.read(2), 'big')
 
 		if b2 == 0xFFE1:                                                        # Found TIFF/EXIF data.
-			exif_data_length = int.from_bytes(f.read(2), byteorder='big') - 2   # The length value includes the length of itself, 2 bytes
+			exif_data_length = int.from_bytes(f.read(2), 'big') - 2   # The length value includes the length of itself, 2 bytes
 			f.seek(offset + 2 + 4 + 2)                                          # Skip to the start of TIFF header: APP1 length - 2 bytes, 'Exif' - 4 bytes, 0x0000 filler - 2 bytes
 			exif_raw_data = f.read(exif_data_length)                            # Read TIFF, EXIF and GPS tags as raw bytes and stop processing
 			
@@ -184,9 +184,9 @@ class ImageMetadata(MediaMetadata):
 
 		f = open(file_name, 'rb')
 
-		ftype_size = int.from_bytes(f.read(4), byteorder='big')         # size of ftype box
+		ftype_size = int.from_bytes(f.read(4), 'big')         # size of ftype box
 		f.seek(ftype_size)
-		metadata_size = int.from_bytes(f.read(4), byteorder='big')      # size of metadata box
+		metadata_size = int.from_bytes(f.read(4), 'big')      # size of metadata box
 
 		# Scan through metadata until we find (a) Exif, (b) iloc
 		data = f.read(metadata_size)
@@ -202,19 +202,19 @@ class ImageMetadata(MediaMetadata):
 		if exif_offset == -1 or iloc_offset == -1:
 			return exif_raw_data
 
-		exif_item_index = uint_16(byte_array=data, start_index=exif_offset - 4, byte_order='big')
+		exif_item_index = uint_16(data, exif_offset - 4, 'big')
 
 		# Scan through ilocs to find exif item location
 		i = iloc_offset + 12
 		while i < metadata_size - 16:
-			item_index = uint_16(byte_array=data, start_index=i, byte_order='big')
+			item_index = uint_16(data, i, 'big')
 
 			if item_index == exif_item_index:
-				exif_location = uint_32(byte_array=data, start_index=i + 8, byte_order='big')
-				exif_size = uint_32(byte_array=data, start_index=i + 12, byte_order='big')
+				exif_location = uint_32(data, i + 8, 'big')
+				exif_size = uint_32(data, i + 12, 'big')
 				# FIXME: Check EXIF prefix at exif_location
 				f.seek(exif_location)
-				prefix_size = 4 + int.from_bytes(f.read(4), byteorder='big')
+				prefix_size = 4 + int.from_bytes(f.read(4), 'big')
 				f.seek(exif_location + prefix_size)
 				exif_raw_data = f.read(exif_size)
 				break
@@ -238,24 +238,28 @@ class ImageMetadata(MediaMetadata):
 			return (tiff_tags, exif_tags, gps_tags)
 
 		# Valdity check 2: the third and fourth bytes contain a 0x002A magic number
-		if uint_16(byte_array=exif_data, start_index=2, byte_order=byte_order) != 0x002A:
+		if uint_16(exif_data, 2, byte_order) != 0x002A:
 			return (tiff_tags, exif_tags, gps_tags)
 
-		ifd1_offset = uint_32(byte_array=exif_data, start_index=4, byte_order=byte_order)
+		ifd1_offset = uint_32(exif_data, 4, byte_order)
 
 		# Valdity check 3: the first IFD must be reachable
 		if ifd1_offset < 8 or ifd1_offset >= len(exif_data):
 			return (tiff_tags, exif_tags, gps_tags)
 
-		tiff_tags = self.__read_tags(data=exif_data, offset=ifd1_offset, tags_to_search=_TiffTags | _ExifTags, byte_order=byte_order)
+		tiff_tags = self.__read_tags(exif_data, ifd1_offset, _TiffTags | _ExifTags, byte_order)
 
 		if 'ExifIFDPointer' in tiff_tags:
 			exif_offset = tiff_tags['ExifIFDPointer'][0]
-			exif_tags = self.__read_tags(data=exif_data, offset=exif_offset, tags_to_search=_TiffTags | _ExifTags, byte_order=byte_order)
+			exif_tags = self.__read_tags(exif_data, exif_offset, _TiffTags | _ExifTags, byte_order)
 
+		gps_offset = -1
 		if 'GPSInfoIFDPointer' in tiff_tags:
 			gps_offset = tiff_tags['GPSInfoIFDPointer'][0]
-			gps_tags = self.__read_tags(data=exif_data, offset=gps_offset, tags_to_search=_GPSTags, byte_order=byte_order)
+		elif 'GPSInfoIFDPointer' in exif_tags:
+			gps_offset = exif_tags['GPSInfoIFDPointer'][0]
+		if gps_offset != -1:
+			gps_tags = self.__read_tags(exif_data, gps_offset, _GPSTags, byte_order)
 
 		inter_offset = -1
 		if 'InteroperabilityIFDPointer' in tiff_tags:
@@ -263,15 +267,14 @@ class ImageMetadata(MediaMetadata):
 		elif 'InteroperabilityIFDPointer' in exif_tags:
 			inter_offset = exif_tags['InteroperabilityIFDPointer'][0]
 		if inter_offset != -1:
-			inter_tags = self.__read_tags(data=exif_data, offset=inter_offset, tags_to_search=_TiffTags | _ExifTags, byte_order=byte_order)
-			print(inter_tags)
+			inter_tags = self.__read_tags(exif_data, inter_offset, _TiffTags | _ExifTags, byte_order)
 
 		return (tiff_tags, exif_tags, gps_tags, inter_tags)
 
 	def __read_tag_value(self, data:bytes, offset:int, tag:str, byte_order:str):
-		tag_type = uint_16(byte_array=data, start_index=offset + 2, byte_order=byte_order)
-		num_values = uint_32(byte_array=data, start_index=offset + 4, byte_order=byte_order)
-		value_offset = uint_32(byte_array=data, start_index=offset + 8, byte_order=byte_order)
+		tag_type = uint_16(data, offset + 2, byte_order)
+		num_values = uint_32(data, offset + 4, byte_order)
+		value_offset = uint_32(data, offset + 8, byte_order)
 		values = []
 		encoding = self._international_encoding
 
@@ -288,7 +291,7 @@ class ImageMetadata(MediaMetadata):
 			else:
 				where_to_look = value_offset
 			# FIXME: byte_order for utf_16 can be different from the system where this code is run
-			values.append(str_b(byte_array=data, start_index=where_to_look, byte_count=num_values-1, encoding='utf_16'))
+			values.append(str_b(data, where_to_look, num_values, 'utf_16'))
 			tag_type = -1
 
 		# Orderly processing
@@ -307,7 +310,7 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 
-				values.append(str_b(byte_array=data, start_index=where_to_look, byte_count=num_values-1, encoding=encoding))
+				values.append(str_b(data, where_to_look, num_values, encoding))
 
 			case 3: # short, 16 bit int
 				if num_values <= 2:
@@ -315,7 +318,7 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 		
-				values = [uint_16(byte_array=data, start_index=where_to_look + i, byte_order=byte_order) for i in range(num_values)]
+				values = [uint_16(data, where_to_look + i, byte_order) for i in range(num_values)]
 
 			case 4: # 4 - long, 32 bit int
 				if num_values == 1:
@@ -323,13 +326,13 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 		
-				values = [uint_32(byte_array=data, start_index=where_to_look + i, byte_order=byte_order) for i in range(num_values)]
+				values = [uint_32(data, where_to_look + i, byte_order) for i in range(num_values)]
 
 			case 5: # 5 - rational, two long values, first is numerator, second is denominator
 				where_to_look = value_offset
 				for i in range(num_values):
-					numerator = uint_32(byte_array=data, start_index=where_to_look + i*8, byte_order=byte_order)
-					denominator = uint_32(byte_array=data, start_index=where_to_look + i*8 + 4, byte_order=byte_order)
+					numerator = uint_32(data, where_to_look + i*8, byte_order)
+					denominator = uint_32(data, where_to_look + i*8 + 4, byte_order)
 					values.append(str(numerator) + '/' + str(denominator))
 
 			case 7: # 7 - undefined, value depending on field
@@ -338,7 +341,7 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 
-				#values.append(str_b(byte_array=data, start_index=where_to_look, byte_count=num_values, encoding=encoding))
+				#values.append(str_b(data, where_to_look, num_values, encoding))
 				values.append(data[where_to_look:where_to_look+num_values])
 				if tag not in self._nonprintable_tags:
 					self._nonprintable_tags.append(tag)
@@ -349,13 +352,13 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 		
-				values = [sint_32(byte_array=data, start_index=where_to_look + i, byte_order=byte_order) for i in range(num_values)]
+				values = [sint_32(data, where_to_look + i, byte_order) for i in range(num_values)]
 
 			case 10: #10 - signed rational, two long values, first is numerator, second is denominator
 				where_to_look = value_offset
 				for i in range(num_values):
-					numerator = sint_32(byte_array=data, start_index=where_to_look + i*8, byte_order=byte_order)
-					denominator = sint_32(byte_array=data, start_index=where_to_look + i*8 + 4, byte_order=byte_order)
+					numerator = sint_32(data, where_to_look + i*8, byte_order)
+					denominator = sint_32(data, where_to_look + i*8 + 4, byte_order)
 					values.append(str(numerator) + '/' + str(denominator))
 
 			case _:
@@ -369,12 +372,12 @@ class ImageMetadata(MediaMetadata):
 
 		for i in range(entries):
 			entry_offset = offset + i * 12 + 2 # entry_offset is relevant to TIFF headers (i.e. 0x4949 or 0x4D4D byte order marker has an offset of 0
-			tag_marker = uint_16(byte_array=data, start_index=entry_offset, byte_order=byte_order)
+			tag_marker = uint_16(data, entry_offset, byte_order)
 			if tag_marker in tags_to_search:
 				key = tags_to_search[tag_marker]
 			else:
 				key = 'Tag 0x{0:04X} ({1:05})'.format(tag_marker, tag_marker)
-			tags[key] = self.__read_tag_value(data=data, offset=entry_offset, tag=key, byte_order=byte_order)
+			tags[key] = self.__read_tag_value(data, entry_offset, key, byte_order)
 		
 		return tags
 
@@ -382,7 +385,7 @@ class ImageMetadata(MediaMetadata):
 
 class VideoMetadata(MediaMetadata):
 
-	def __init__(self, file_name:str, encoding:str = 'cp1251'):
+	def __init__(self, file_name:str, encoding:str = 'utf_8'):
 		super().__init__(file_name, encoding)
 
 		match self._file_extension:
@@ -395,8 +398,8 @@ class VideoMetadata(MediaMetadata):
 			raise UnsupportedMediaFile
 
 		for i in range(len(tags_list)):
-			key = str_b(tags_list[i][0], 0, len(tags_list[i][0], encoding=encoding))
-			value = str_b(tags_list[i][1], 0, len(tags_list[i][1], encoding=encoding))
+			key = str_b(tags_list[i][0], 0, len(tags_list[i][0]), encoding)
+			value = str_b(tags_list[i][1], 0, len(tags_list[i][1]), encoding)
 			self._tags[key] = [value]
 
 	def __find_meta_mov(self, file_name:str):
@@ -418,13 +421,13 @@ class VideoMetadata(MediaMetadata):
 
 		while offset < file_size:
 			f.seek(offset)
-			atom_size = int.from_bytes(f.read(4), byteorder='big')
+			atom_size = int.from_bytes(f.read(4), 'big')
 			atom_name = f.read(4)
 
 			if atom_size == 0:
 				atom_size = file_size - offset
 			elif atom_size == 1:
-				atom_size = int.from_bytes(f.read(8), byteorder='big')
+				atom_size = int.from_bytes(f.read(8), 'big')
 
 			qt_atoms[qt_atom_index] = [atom_name, atom_size, offset]
 
@@ -448,13 +451,13 @@ class VideoMetadata(MediaMetadata):
 
 		while offset < moov_atom_offset + moov_atom_size:
 			f.seek(offset)
-			atom_size = int.from_bytes(f.read(4), byteorder='big')
+			atom_size = int.from_bytes(f.read(4), 'big')
 			atom_name = f.read(4)
 
 			if atom_size == 0:
 				atom_size = file_size - offset
 			elif atom_size == 1:
-				atom_size = int.from_bytes(f.read(8), byteorder='big')
+				atom_size = int.from_bytes(f.read(8), 'big')
 
 			qt_moov_atoms[qt_atom_index] = [atom_name, atom_size, offset]
 
@@ -478,13 +481,13 @@ class VideoMetadata(MediaMetadata):
 
 		while offset < meta_atom_offset + meta_atom_size:
 			f.seek(offset)
-			atom_size = int.from_bytes(f.read(4), byteorder='big')
+			atom_size = int.from_bytes(f.read(4), 'big')
 			atom_name = f.read(4)
 
 			if atom_size == 0:
 				atom_size = file_size - offset
 			elif atom_size == 1:
-				atom_size = int.from_bytes(f.read(8), byteorder='big')
+				atom_size = int.from_bytes(f.read(8), 'big')
 
 			qt_meta_atoms[atom_name] = [atom_size, offset]
 
@@ -499,14 +502,14 @@ class VideoMetadata(MediaMetadata):
 			ilst_offset = qt_meta_atoms[b'ilst'][1] + 4 + 4      # Skip size, type of 'ilst' atom
 			
 			f.seek(keys_offset)
-			entry_count = int.from_bytes(f.read(4), byteorder='big')
+			entry_count = int.from_bytes(f.read(4), 'big')
 			keys_offset += 4
 
 			for i in range(entry_count):
 				# each entry in 'keys' has the following format: 
 				# key_size:unit32, namespace:unit32, key_name:array of bytes with sizeof(key_name) = key_size - 8
 				f.seek(keys_offset)
-				key_size = int.from_bytes(f.read(4), byteorder='big')
+				key_size = int.from_bytes(f.read(4), 'big')
 				f.seek(keys_offset + 4 + 4)
 				key_name = f.read(key_size - 8)
 				keys_offset += 4 + 4 + key_size - 8
@@ -515,8 +518,8 @@ class VideoMetadata(MediaMetadata):
 				# record_size:uint32, key_index:unit32, record_size1:unit32, 'data' (or other 4-byte literals), type:unit32, locale:unit32, key_value:array of bytes with sizeof(key_value) = record_size1 - 16
 				# record_size1 = record_size - 8, so record_size is superfluous
 				f.seek(ilst_offset + 4) # skip record_size as superfluous
-				j = int.from_bytes(f.read(4), byteorder='big') - 1
-				value_size = int.from_bytes(f.read(4), byteorder='big') - 4 - 4 - 4 - 4
+				j = int.from_bytes(f.read(4), 'big') - 1
+				value_size = int.from_bytes(f.read(4), 'big') - 4 - 4 - 4 - 4
 				f.seek(ilst_offset + 4 + 4 + 4 + 4 + 4 + 4)
 				key_value = f.read(value_size)
 				ilst_offset += 4 + 4 + 4 + 4 + 4 + 4 + value_size

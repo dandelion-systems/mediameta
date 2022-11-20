@@ -73,7 +73,7 @@ _ExifTags = {
 	0x1000: 'RelatedImageFileFormat',
 	0x1001: 'RelatedImageWidth',
 	0x1002: 'RelatedImageLength',
-	
+
 	0x829A: 'ExposureTime',
 	0x829D: 'FNumber',
 	0x8822: 'ExposureProgram',
@@ -137,7 +137,7 @@ _ExifTags = {
 	0xA401: 'CustomRendered',
 	0xA402: 'ExposureMode',
 	0xA403: 'WhiteBalance',
-	0xA404: 'DigitalZoomRation',
+	0xA404: 'DigitalZoomRatio',
 	0xA405: 'FocalLengthIn35mmFilm',
 	0xA406: 'SceneCaptureType',
 	0xA407: 'GainControl',
