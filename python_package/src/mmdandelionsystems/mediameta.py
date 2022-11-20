@@ -43,7 +43,7 @@ class MediaMetadata:
 	_tags = {}				
 
 	_nonprintable_tags = [
-		'XMLPacket', 'MakerNote', 'ImageResources', 
+		'XMLPacket', 'MakerNote', 'UserComment', 'ImageResources', 
 		'IPTCNAA', 'StripByteCounts', 'StripOffsets',
 		'InterColorProfile', 'JPEGTables', 'OECF',
 		'SpatialFrequencyResponse', 'CFAPattern',
@@ -278,14 +278,8 @@ class ImageMetadata(MediaMetadata):
 		values = []
 		encoding = self._international_encoding
 
-		# Preliminary processing for secial cases
-		if tag in ['FileSource', 'SceneType']:	# recorded as Undefined, i.e. tag_type == 7
-			tag_type = 1		# though they are bytes (e.g. for DSC, FileSource == 3)
-
-		elif tag in ['XMLPacket', 'ExifVersion', 'InteroperabilityVersion', 'FlashpixVersion']:	# recorded as bytes, i.e. tag_type == 1
-			tag_type = 2		# though they are strings
-
-		elif tag in ['XPTitle', 'XPComment', 'XPAuthor', 'XPKeywords', 'XPSubject']: # windows tags all in utf_16
+		# Processing for secial cases
+		if tag in ['XPTitle', 'XPComment', 'XPAuthor', 'XPKeywords', 'XPSubject']: # windows tags all in utf_16
 			if num_values <= 2:
 				where_to_look = offset + 8
 			else:
@@ -310,7 +304,7 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 
-				values.append(str_b(data, where_to_look, num_values, encoding))
+				values.append(str_b(data, where_to_look, num_values-1, encoding))
 
 			case 3: # short, 16 bit int
 				if num_values <= 2:

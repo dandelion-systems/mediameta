@@ -55,4 +55,4 @@ def sint_8(byte_array:bytes, start_index:int, byte_order:Literal['little','big']
 
 def str_b(byte_array:bytes, start_index:int, byte_count:int, encoding:str):
 	bytes_str = unpack_from(str(byte_count)+'s', buffer=byte_array, offset=start_index)[0]
-	return bytes_str.decode(encoding=encoding, errors='replace')
+	return bytes_str.decode(encoding=encoding, errors='replace').split('\x00')[0] # rarely, a zero terminator would penetrate the result
