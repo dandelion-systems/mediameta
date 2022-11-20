@@ -51,7 +51,7 @@ The usage of both classes is straigthforward. Just instaciate them supplying the
 * _ExifTags
 * _GPSTags
 
-> Note: some keys defined by the latest revisions of the EXIF standard and the keys defined by invidiual equipment and software vendors are not declared. However, such keys will be read and stored as `Tag 0xXXXX (DDDDD)`. XXXX and DDDDD stand for hexadecimal and decimal values of the unknown tag respectively.
+> Note: some keys defined by the latest revisions of the EXIF standard, especially the ones used by some equipment and software vendors are not declared. However, such keys will be read and stored as `Tag 0xXXXX (DDDDD)`. XXXX and DDDDD stand for hexadecimal and decimal values of the unknown tag respectively.
 
 If you wish to obtain individual key values from a file's metadata, you should use the literals from these dictionaries as keys to index the object of `ImageMetadata`. For instance, the `print()` calls in the example above could look like this:
 
@@ -73,7 +73,7 @@ A dictionary with metadata keys for `VideoMetadata` is not included as these key
 
 Both `ImageMetadata` and `VideoMetadata` are subclasses of `MediaMetadata` which is a dummy class providing declarations of common fields, binary data manipulation methods, and metadata access methods. The latter is documented below. You should never need to instaciate the top level class.
 
-`__init__(file_name:str, encoding:str = 'cp1251')` - the constructor, this is where all metadata is scanned in `ImageMetadata` and `VideoMetadata`. It requires just the name of the file containing media. `encoding` is optional and used to decode string values from byte sequences in the metadata. The deafult decodes Latin and Cyrillic (Russian) characters without a problem. `encoding` should be one of Python supported [Standard encodings](https://docs.python.org/3/library/codecs.html#standard-encodings). In case decoding fails the offending symbols in a string will be replaced with � (U+FFFD).
+`__init__(file_name:str, encoding:str = 'utf_8')` - the constructor, this is where all metadata is scanned in `ImageMetadata` and `VideoMetadata`. It requires just the name of the file containing media. `encoding` is optional and used to decode string values from byte sequences in the metadata. `encoding` should be one of Python supported [Standard encodings](https://docs.python.org/3/library/codecs.html#standard-encodings). In case decoding fails the offending symbols in a string will be replaced with � (U+FFFD).
 
 `__getitem__(key:str)` - retrieves the metadata value for a specific `key` allowing the objects of `MediaMetadata` and its descendants to be indexed with `[]`. If the `key` is not present in the file's headers an empty list is returned. If the `key` is present and a single value is stored under it, this value is returned. If the `key` holds mulptiple values like, for instance, in the case of GPS coordinates, they are returned as a list.
 

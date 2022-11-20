@@ -42,12 +42,21 @@ class MediaMetadata:
 	# _tags follows {'tag_name':[tag_values_list]} format even if there is only 1 value for tag_name
 	_tags = {}				
 
+	_nonprintable_tags = [
+		'XMLPacket', 'MakerNote', 'ImageResources', 
+		'IPTCNAA', 'StripByteCounts', 'StripOffsets',
+		'InterColorProfile', 'JPEGTables', 'OECF',
+		'SpatialFrequencyResponse', 'CFAPattern',
+		'DeviceSettingDescription', 'ExifIFDPointer',
+		'GPSInfoIFDPointer', 'InteroperabilityIFDPointer'
+	]
+
 	_file_name = ''
 	_file_extension = ''
 
 	_international_encoding = ''
 
-	def __init__(self, file_name:str, encoding:str = 'cp1251'):
+	def __init__(self, file_name:str, encoding:str = 'utf_8'):
 		self._file_name = file_name
 
 		_, ext = os.path.splitext(file_name)
@@ -72,9 +81,8 @@ class MediaMetadata:
 	def __str__(self):
 		as_string = ''
 		for (key, value) in self.all():
-			if key == 'MakerNote': 								# this tag's value might get long and contain binary data 
-				if len(value) > 20: value = value[:20] + '...'	# so we cut it short in print
-			as_string += key + '\t' + str(value) + os.linesep
+			if key not in self._nonprintable_tags:
+				as_string += key + '\t' + str(value) + os.linesep
 		return as_string
 
 	def all(self):
@@ -94,7 +102,7 @@ class MediaMetadata:
 
 class ImageMetadata(MediaMetadata):
 
-	def __init__(self, file_name:str, encoding:str = 'cp1251'):
+	def __init__(self, file_name:str, encoding:str = 'utf_8'):
 		super().__init__(file_name, encoding)
 
 		match self._file_extension:
@@ -110,9 +118,9 @@ class ImageMetadata(MediaMetadata):
 		if raw_meta_data is None:
 			raise UnsupportedMediaFile
 		
-		(tiff_tags, exif_tags, gps_tags) = self.__parse_meta_data(raw_meta_data)
+		(tiff_tags, exif_tags, gps_tags, inter_tags) = self.__parse_meta_data(raw_meta_data)
 
-		self._tags = tiff_tags | exif_tags | gps_tags
+		self._tags = tiff_tags | exif_tags | gps_tags | inter_tags
 
 	def __find_meta_jpeg(self, file_name:str):
 		exif_raw_data = None
@@ -219,6 +227,7 @@ class ImageMetadata(MediaMetadata):
 		tiff_tags = {}
 		exif_tags = {}
 		gps_tags  = {}
+		inter_tags = {}
 
 		# Validity check 1: the first two bytes contain little/big endian marker
 		if exif_data[0] == 0x49 and exif_data[1] == 0x49:   # I I - Intel
@@ -248,16 +257,41 @@ class ImageMetadata(MediaMetadata):
 			gps_offset = tiff_tags['GPSInfoIFDPointer'][0]
 			gps_tags = self.__read_tags(data=exif_data, offset=gps_offset, tags_to_search=_GPSTags, byte_order=byte_order)
 
-		# FIXME: Interoperability tags are not parsed.
-		return (tiff_tags, exif_tags, gps_tags)
+		inter_offset = -1
+		if 'InteroperabilityIFDPointer' in tiff_tags:
+			inter_offset = tiff_tags['InteroperabilityIFDPointer'][0]
+		elif 'InteroperabilityIFDPointer' in exif_tags:
+			inter_offset = exif_tags['InteroperabilityIFDPointer'][0]
+		if inter_offset != -1:
+			inter_tags = self.__read_tags(data=exif_data, offset=inter_offset, tags_to_search=_TiffTags | _ExifTags, byte_order=byte_order)
+			print(inter_tags)
 
-	def __read_tag_value(self, data:bytes, offset:int, tag:int, byte_order:str):
+		return (tiff_tags, exif_tags, gps_tags, inter_tags)
+
+	def __read_tag_value(self, data:bytes, offset:int, tag:str, byte_order:str):
 		tag_type = uint_16(byte_array=data, start_index=offset + 2, byte_order=byte_order)
 		num_values = uint_32(byte_array=data, start_index=offset + 4, byte_order=byte_order)
 		value_offset = uint_32(byte_array=data, start_index=offset + 8, byte_order=byte_order)
 		values = []
 		encoding = self._international_encoding
 
+		# Preliminary processing for secial cases
+		if tag in ['FileSource', 'SceneType']:	# recorded as Undefined, i.e. tag_type == 7
+			tag_type = 1		# though they are bytes (e.g. for DSC, FileSource == 3)
+
+		elif tag in ['XMLPacket', 'ExifVersion', 'InteroperabilityVersion', 'FlashpixVersion']:	# recorded as bytes, i.e. tag_type == 1
+			tag_type = 2		# though they are strings
+
+		elif tag in ['XPTitle', 'XPComment', 'XPAuthor', 'XPKeywords', 'XPSubject']: # windows tags all in utf_16
+			if num_values <= 2:
+				where_to_look = offset + 8
+			else:
+				where_to_look = value_offset
+			# FIXME: byte_order for utf_16 can be different from the system where this code is run
+			values.append(str_b(byte_array=data, start_index=where_to_look, byte_count=num_values-1, encoding='utf_16'))
+			tag_type = -1
+
+		# Orderly processing
 		match tag_type:
 			case 1: # 1 - byte, 8-bit unsigned int
 				if num_values <= 4:
@@ -304,7 +338,10 @@ class ImageMetadata(MediaMetadata):
 				else:
 					where_to_look = value_offset
 
-				values.append(str_b(byte_array=data, start_index=where_to_look, byte_count=num_values, encoding=encoding))
+				#values.append(str_b(byte_array=data, start_index=where_to_look, byte_count=num_values, encoding=encoding))
+				values.append(data[where_to_look:where_to_look+num_values])
+				if tag not in self._nonprintable_tags:
+					self._nonprintable_tags.append(tag)
 				
 			case 9: # 9 - slong, 32 bit signed int.
 				if num_values == 1:
@@ -321,6 +358,9 @@ class ImageMetadata(MediaMetadata):
 					denominator = sint_32(byte_array=data, start_index=where_to_look + i*8 + 4, byte_order=byte_order)
 					values.append(str(numerator) + '/' + str(denominator))
 
+			case _:
+				pass
+
 		return values
 
 	def __read_tags(self, data:bytes, offset:int, tags_to_search:dict, byte_order:str):
@@ -334,7 +374,7 @@ class ImageMetadata(MediaMetadata):
 				key = tags_to_search[tag_marker]
 			else:
 				key = 'Tag 0x{0:04X} ({1:05})'.format(tag_marker, tag_marker)
-			tags[key] = self.__read_tag_value(data=data, offset=entry_offset, tag=tag_marker, byte_order=byte_order)
+			tags[key] = self.__read_tag_value(data=data, offset=entry_offset, tag=key, byte_order=byte_order)
 		
 		return tags
 
