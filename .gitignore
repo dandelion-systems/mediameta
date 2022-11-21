@@ -3,5 +3,5 @@
 t.py
 
 # package distribution
-/python_package/dist
-/python_package/build_and_install.sh
+/dist
+/build_and_install.sh
