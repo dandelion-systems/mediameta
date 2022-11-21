@@ -21,12 +21,15 @@
 	along with mediameta. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-import mmdandelionsystems.mediameta as mm
+from mediameta.tags import _TiffTags
+from mediameta.tags import _ExifTags
+from mediameta.tags import _GPSTags
 
-_TiffTags = mm._TiffTags
-_ExifTags = mm._ExifTags
-_GPSTags = mm._GPSTags
+from mediameta.mediametadata import UnsupportedMediaFile
+from mediameta.mediametadata import MediaMetadata
 
-ImageMetadata = mm.ImageMetadata
-VideoMetadata = mm.VideoMetadata
-UnsupportedMediaFile = mm.UnsupportedMediaFile
+from mediameta.imagemetadata import ImageMetadata
+
+from mediameta.videometadata import VideoMetadata
+
+__version__ = '0.0.1'

@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "mmdandelionsystems"
-version = "0.0.8.7.2"
+name = "mediameta"
+version = "0.0.1.1"
 authors = [
   { name="Dandelion Systems", email="dandelion.systems@gmail.com" },
 ]
@@ -17,7 +17,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 keywords = [
-	"Metadata", "parsing",
+	"metadata", "parsing",
     "EXIF", "GPS",
 	"TIFF", "TIF",
     "JPEG", "JPG", 

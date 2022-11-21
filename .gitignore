@@ -1,3 +1,7 @@
+# temporary stuff
 /__pycache__
-/python_package/dist
 t.py
+
+# package distribution
+/python_package/dist
+/python_package/build_and_install.sh

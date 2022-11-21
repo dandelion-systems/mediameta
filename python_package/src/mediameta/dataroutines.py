@@ -55,4 +55,7 @@ def sint_8(byte_array:bytes, start_index:int, byte_order:Literal['little','big']
 
 def str_b(byte_array:bytes, start_index:int, byte_count:int, encoding:str):
 	bytes_str = unpack_from(str(byte_count)+'s', buffer=byte_array, offset=start_index)[0]
-	return bytes_str.decode(encoding=encoding, errors='replace').split('\x00')[0] # rarely, a zero terminator would penetrate the result
+	# rarely, a zero terminator would penetrate the result (even in the middle of the string)
+	# due to a bug in photo software. And in any case, strings are 0-terminated, so we
+	# need to remove '\x00' to get rid of binary data in print.
+	return bytes_str.decode(encoding=encoding, errors='replace').split('\x00')[0] 
