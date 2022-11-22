@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "mediameta"
-version = "0.0.1.1"
+version = "0.0.1.6"
 authors = [
   { name="Dandelion Systems", email="dandelion.systems@gmail.com" },
 ]
@@ -23,6 +23,8 @@ keywords = [
     "JPEG", "JPG", 
     "HEIC",
 	"MOV", "QuickTime",
+    "GPS", "maps",
+    "Google maps", "Yandex maps"
 ]
 
 [project.urls]

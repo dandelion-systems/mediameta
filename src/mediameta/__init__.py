@@ -27,6 +27,8 @@ from mediameta.tags import _GPSTags
 
 from mediameta.mediametadata import UnsupportedMediaFile
 from mediameta.mediametadata import MediaMetadata
+from mediameta.mediametadata import str_to_rational
+from mediameta.mediametadata import GPS_link
 
 from mediameta.imagemetadata import ImageMetadata
 

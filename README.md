@@ -74,9 +74,9 @@ Both `ImageMetadata` and `VideoMetadata` are subclasses of `MediaMetadata` which
 
 `__init__(file_name:str, encoding:str = 'utf_8')` - the constructor, this is where all metadata is scanned in `ImageMetadata` and `VideoMetadata`. It requires just the name of the file containing media. `encoding` is optional and used to decode string values from byte sequences in the metadata. `encoding` should be one of Python supported [Standard encodings](https://docs.python.org/3/library/codecs.html#standard-encodings). In case decoding fails the offending symbols in a string will be replaced with � (U+FFFD).
 
-`__getitem__(key:str)` - retrieves the metadata value for a specific `key` allowing the objects of `MediaMetadata` and its descendants to be indexed with `[]`. If the `key` is not present in the file's headers an empty list is returned. If the `key` is present and a single value is stored under it, this value is returned. If the `key` holds mulptiple values like, for instance, in the case of GPS coordinates, they are returned as a list.
+`__getitem__(key:str)` - retrieves the metadata value for a specific `key` allowing the objects of `MediaMetadata` and its descendants to be indexed with `[]`. If the `key` is not present in the file's headers a None value is returned. If the `key` is present and a single value is stored under it, this value is returned. If the `key` holds mulptiple values like, for instance, in the case of GPS coordinates, they are returned as a list. If the object was interpreted (see `interpret()` below), the interpreted values are returned.
 
-> Note: Rational type values are returned as '_numerator_/_denominator_' strings. For example, in the case of `ExposureTime` tag you will see something like `'1/3003'` as its value. This is done to preserve the original metadata and to avoid division by zero as might happen, for instance, in `LensSpecification` tag recording an unknown F number in `0/0` notation.
+> Note: For tags that have not been interpreted, rational type values are returned as '_numerator_/_denominator_' strings. For example, in the case of `ExposureTime` tag you will see something like `'1/3003'` as its value. This is done to preserve the original metadata and to avoid division by zero as might happen, for instance, in `LensSpecification` tag recording an unknown F number in `0/0` notation.
 
 `__str__()` - casts the object to `str` type returning a string of tab separated metadata key/value pairs found in the media file each followed by a line separator. The format of values follows the logic documented for `__getitem__()`. Useful to import the data into a spreadsheet. Or if you are creaing a command line tool, the output can be fed to `awk` or `grep` for further processing.
 
@@ -87,3 +87,54 @@ Both `ImageMetadata` and `VideoMetadata` are subclasses of `MediaMetadata` which
 `keys()` - returns a `list` of all keys found in the media file.
 
 `file_name()` and `file_extension()` - return the file name that was supplied to the class constructor and the capitalised extesion respectively. The extesion can be used in further releases/forks to manipulate the metadata which implies knowing the original file type.
+
+`interpret()` - calling this function would attempt at converting the tag's values to their human-readable form. This function attemps to locate a dictionary or a function with exactly the same name as the tag. If a dictionary is found, it tries to map the values of the tag to the ones in the dictionary. If a function is found, the tag's value is passed to it and the result is then stored as an interpreted value.
+
+The interpreters (dictionaries and functions) defined in the package are dicumented below. Should you wish to overrride them, or write an interpreter for another tag, just define it in your code prior to calling `interpret()`.
+
+`revert_interpretation()` - reverts the tags back to their original values as they were obtained from the media file.
+
+## Interpreters reference
+
+### Dictionaries
+
+ 1..10 | 11..20 | 21..30
+---|---|---
+Orientation | ExposureProgram | MeteringMode
+LightSource | Flash | SensingMethod
+SceneCaptureType | SceneType | CustomRendered
+GainControl | WhiteBalance | Contrast
+Saturation | Sharpness | SubjectDistanceRange
+FileSource | Components | ResolutionUnit
+FocalPlaneResolutionUnit | PhotometricInterpretation | Compression
+PlanarConfiguration | YCbCrPositioning | ColorSpace
+ExposureMode | Predictor | GPSAltitudeRef
+GPSSpeedRef | GPSImgDirectionRef | GPSDestBearingRef
+
+### Functions
+
+Intepreter Function | Action
+--- | ---
+GPSLatitude | Converts GPS latitude to dd°mm'ss"N format, e.g. _41°4'0.6"_
+GPSLongitude | Same as GPSLatitude but for the longtitude
+GPSHPositioningError | Converts the error to string in meters, e.g. _24 m_
+GPSAltitude | Converts the altitude to string in meters, e.g. _156 m_
+GPSSpeed | Returns the speed as formatted string with float value
+GPSImgDirection | Returns the direction as formatted string with float value and degrees sign at the end ('°', '\xB0')
+GPSDestBearing | Same as GPSImgDirection but for the bearing
+
+## Function reference
+
+There are a few useful functions that come predefined with the package, should you wish to use them in your code.
+
+`str_to_rational(a:str)` - converts a '_numerator_/_denominator_' string to `float` or `int` if the the numbers are exact multiples
+
+`GPS_link(lat:str, lat_ref:str, lng:str, lng_ref:str, service:str='google')` - returns the maps link for the supplied coordinates. The coordinates must be obtained after calling `interpret()`. Google Maps and Yandex Maps are supported. Samples follow:
+
+	google_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E')
+	yandex_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E', 'yandex') 
+
+Link | Sample result
+--- | ---
+google_maps | https://www.google.com/maps/place/41°4'0.6"N29°1'9.46"E
+yandex_maps | https://yandex.com/maps/?ll=29.019294444444444,41.066833333333335&pt=29.019294444444444,41.066833333333335&z=17

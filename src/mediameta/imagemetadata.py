@@ -41,7 +41,8 @@ class ImageMetadata(MediaMetadata):
 		super().__init__(file_name, encoding)
 
 		self._nonprintable_tags += [
-			'XMLPacket', 'MakerNote', 'UserComment', 'ImageResources', 
+			'XMLPacket', 'MakerNote', 'UserComment', 
+			'ImageResources', 'ImageDescription',
 			'IPTCNAA', 'StripByteCounts', 'StripOffsets',
 			'InterColorProfile', 'JPEGTables', 'OECF',
 			'SpatialFrequencyResponse', 'CFAPattern',

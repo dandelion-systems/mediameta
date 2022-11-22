@@ -36,7 +36,7 @@ class VideoMetadata(MediaMetadata):
 		match self._file_extension:
 			case '.MOV':
 				tags_list = self.__find_meta_mov(file_name)
-			case _:
+			case _: # UPNEXT: mp4
 				raise UnsupportedMediaFile
 		
 		if tags_list is None:
