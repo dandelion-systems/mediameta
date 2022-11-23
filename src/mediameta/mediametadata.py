@@ -23,46 +23,264 @@
 import os
 
 # TIFF/EXIF tags
-from mediameta.tags import _TiffTags
-from mediameta.tags import _ExifTags
-from mediameta.tags import _GPSTags
+from .tags import _TiffTags
+from .tags import _ExifTags
+from .tags import _GPSTags
 
 # Interpreters - dictionaries
-from mediameta.tags import Orientation
-from mediameta.tags import ExposureProgram
-from mediameta.tags import MeteringMode
-from mediameta.tags import LightSource
-from mediameta.tags import Flash
-from mediameta.tags import SensingMethod
-from mediameta.tags import SceneCaptureType
-from mediameta.tags import SceneType
-from mediameta.tags import CustomRendered
-from mediameta.tags import GainControl
-from mediameta.tags import WhiteBalance
-from mediameta.tags import Contrast
-from mediameta.tags import Saturation
-from mediameta.tags import Sharpness
-from mediameta.tags import SubjectDistanceRange
-from mediameta.tags import FileSource
-from mediameta.tags import Components
-from mediameta.tags import ResolutionUnit
-from mediameta.tags import FocalPlaneResolutionUnit
-from mediameta.tags import PhotometricInterpretation
-from mediameta.tags import Compression
-from mediameta.tags import PlanarConfiguration
-from mediameta.tags import YCbCrPositioning
-from mediameta.tags import ColorSpace
-from mediameta.tags import ExposureMode
-from mediameta.tags import Predictor
-from mediameta.tags import GPSAltitudeRef
-from mediameta.tags import GPSSpeedRef
-from mediameta.tags import GPSImgDirectionRef
-from mediameta.tags import GPSDestBearingRef
+Orientation = {
+	1: 'Straight',
+	2: 'Flipped horizontally',
+	3: 'Flipped horizontally and vertically',
+	4: 'Flipped vertically',
+	5: 'Flipped vertically and turned 90 degrees clockwise',
+	6: 'Turned 90 degress counterclockwise',
+	7: 'Flipped vertically and turned 90 degrees counterclockwise',
+	8: 'Turned 90 degress clockwise'
+}
+
+ExposureProgram = {
+	0: 'Not defined',
+	1: 'Manual',
+	2: 'Normal program',
+	3: 'Aperture priority',
+	4: 'Shutter priority',
+	5: 'Creative program',
+	6: 'Action program',
+	7: 'Portrait mode',
+	8: 'Landscape mode'
+}
+
+MeteringMode = {
+	0: 'Unknown',
+	1: 'Average',
+	2: 'CenterWeightedAverage',
+	3: 'Spot',
+	4: 'MultiSpot',
+	5: 'Pattern',
+	6: 'Partial',
+	255: 'Other'
+}
+
+LightSource = {
+	0: 'Unknown',
+	1: 'Daylight',
+	2: 'Fluorescent',
+	3: 'Tungsten (incandescent light)',
+	4: 'Flash',
+	9: 'Fine weather',
+	10: 'Cloudy weather',
+	11: 'Shade',
+	12: 'Daylight fluorescent (D 5700 - 7100K)',
+	13: 'Day white fluorescent (N 4600 - 5400K)',
+	14: 'Cool white fluorescent (W 3900 - 4500K)',
+	15: 'White fluorescent (WW 3200 - 3700K)',
+	17: 'Standard light A',
+	18: 'Standard light B',
+	19: 'Standard light C',
+	20: 'D55',
+	21: 'D65',
+	22: 'D75',
+	23: 'D50',
+	24: 'ISO studio tungsten',
+	255: 'Other'
+}
+
+Flash = {
+	0x0000: 'Flash did not fire',
+	0x0001: 'Flash fired',
+	0x0005: 'Strobe return light not detected',
+	0x0007: 'Strobe return light detected',
+	0x0009: 'Flash fired, compulsory flash mode',
+	0x000D: 'Flash fired, compulsory flash mode, return light not detected',
+	0x000F: 'Flash fired, compulsory flash mode, return light detected',
+	0x0010: 'Flash did not fire, compulsory flash mode',
+	0x0018: 'Flash did not fire, auto mode',
+	0x0019: 'Flash fired, auto mode',
+	0x001D: 'Flash fired, auto mode, return light not detected',
+	0x001F: 'Flash fired, auto mode, return light detected',
+	0x0020: 'No flash function',
+	0x0041: 'Flash fired, red-eye reduction mode',
+	0x0045: 'Flash fired, red-eye reduction mode, return light not detected',
+	0x0047: 'Flash fired, red-eye reduction mode, return light detected',
+	0x0049: 'Flash fired, compulsory flash mode, red-eye reduction mode',
+	0x004D: 'Flash fired, compulsory flash mode, red-eye reduction mode, return light not detected',
+	0x004F: 'Flash fired, compulsory flash mode, red-eye reduction mode, return light detected',
+	0x0059: 'Flash fired, auto mode, red-eye reduction mode',
+	0x005D: 'Flash fired, auto mode, return light not detected, red-eye reduction mode',
+	0x005F: 'Flash fired, auto mode, return light detected, red-eye reduction mode'
+}
+
+SensingMethod = {
+	1: 'Not defined',
+	2: 'One-chip color area sensor',
+	3: 'Two-chip color area sensor',
+	4: 'Three-chip color area sensor',
+	5: 'Color sequential area sensor',
+	7: 'Trilinear sensor',
+	8: 'Color sequential linear sensor'
+}
+
+SceneCaptureType = {
+	0: 'Standard',
+	1: 'Landscape',
+	2: 'Portrait',
+	3: 'Night scene'
+}
+
+SceneType = {
+	1: 'Directly photographed'
+}
+
+CustomRendered = {
+	0: 'Normal process',
+	1: 'Custom process'
+}
+
+WhiteBalance = {
+	0: 'Auto white balance',
+	1: 'Manual white balance'
+}
+
+GainControl = {
+	0: 'None',
+	1: 'Low gain up',
+	2: 'High gain up',
+	3: 'Low gain down',
+	4: 'High gain down'
+}
+
+Contrast = {
+	0: 'Normal',
+	1: 'Soft',
+	2: 'Hard'
+}
+
+Saturation = {
+	0: 'Normal',
+	1: 'Low saturation',
+	2: 'High saturation'
+}
+
+Sharpness = {
+	0: 'Normal',
+	1: 'Soft',
+	2: 'Hard'
+}
+
+SubjectDistanceRange = {
+	0: 'Unknown',
+	1: 'Macro',
+	2: 'Close view',
+	3: 'Distant view'
+}
+
+FileSource = {
+	3: 'DSC'
+}
+
+Components = {
+	0: '',
+	1: 'Y',
+	2: 'Cb',
+	3: 'Cr',
+	4: 'R',
+	5: 'G',
+	6: 'B'
+}
+
+ResolutionUnit = {
+	1: '',
+	2: 'in',
+	3: 'cm'
+}
+FocalPlaneResolutionUnit = ResolutionUnit
+
+PhotometricInterpretation = {
+	0: 'White is zero',
+	1: 'Black is zero',
+	2: 'RGB',
+	3: 'Palette color',
+	4: 'Transparency Mask',
+	5: 'Seperated (CMYK)',
+	6: 'YCbCr',
+	8: 'CIE L*a*b*',
+	9: 'ICC L*a*b*',
+	10: 'ITU L*a*b*',
+	32844: 'Pixar LogL',
+	32845: 'Pixar LogLuv',
+	32803: 'CFA (Color Filter Array)',
+	34892: 'LinearRaw',
+	51177: 'Depth'
+}
+
+Compression = {
+	1: 'No compression',
+	2: 'CCITT Group 3 1-Dimensional Modified Huffman run-length encoding',
+	3: 'CCITT Group 3 fax encoding',
+	4: 'CCITT Group 4 fax encoding',
+	5: 'LZW',
+	6: 'JPEG (old-style)',
+	7: 'JPEG',
+	8: 'Deflate (Adobe)',
+	9: 'JBIG on black and white',
+	10: 'JBIG on color',
+	32773: 'PackBits compression',
+	34892: 'Lossy JPEG'
+}
+
+PlanarConfiguration = {
+	1: 'Chunky',
+	2: 'Planar'
+}
+
+YCbCrPositioning = {
+	1: 'Centered',
+	2: 'Cosited'
+}
+
+ColorSpace = {
+	0x0001: 'sRGB',
+	0xFFFF: 'Uncalibrated'
+}
+
+ExposureMode = {
+	0: 'Auto exposure',
+	1: 'Manual exposure',
+	2: 'Auto bracket'
+}
+
+Predictor = {
+	1: 'No prediction scheme used before coding',
+	2: 'Horizontal differencing',
+	3: 'Floating point horizontal differencing'
+}
+
+GPSAltitudeRef = {
+	0: 'Above sea level',
+	1: 'Below sea level'
+}
+
+GPSSpeedRef = {
+	'K': 'km/h',
+	'M': 'miles/h',
+	'N': 'knots'
+}
+
+GPSImgDirectionRef = {
+	'T': 'True',
+	'M': 'Magnetic'
+}
+
+GPSDestBearingRef = GPSImgDirectionRef
 
 # Interpreters - functions
 def str_to_rational(a:str):
 	n, d = list(map(int, a.split('/')))
 	return int(n/d) if n % d == 0 else n/d
+
+def FNumber(f):
+	return ['f/' + str((lambda x:r if isinstance((r:=str_to_rational(x)), int) else round(r, 2))(f[0]))]
 
 def GPSLatitude(lat):
 	coord = list(map(str, map(str_to_rational, lat)))
@@ -84,9 +302,11 @@ def GPSImgDirection(d):
 
 GPSDestBearing = GPSImgDirection
 
-#https://www.google.com/maps/place/41°04'0.6"N29°01'9.46"E
-#https://yandex.com/maps/?ll=float,float&pt=float,float&z=12&l=map
-# see https://yandex.com/dev/yandex-apps-launch/maps/doc/concepts/yandexmaps-web.html
+# GPS Maps
+# Sample results:
+# https://www.google.com/maps/place/41°04'0.6"N29°01'9.46"E
+# https://yandex.com/maps/?ll=float,float&pt=float,float&z=12&l=map
+# 	see https://yandex.com/dev/yandex-apps-launch/maps/doc/concepts/yandexmaps-web.html
 def GPS_link(lat:str, lat_ref:str, lng:str, lng_ref:str, service:str='google') -> str:
 	match service:
 		case 'google':
@@ -113,7 +333,8 @@ class UnsupportedMediaFile(Exception):
 class MediaMetadata:
 	# _tags follows {'tag_name':[tag_values_list]} format even if there is only 1 value for tag_name
 	_tags = {}
-	_interpreted_tags = {}				
+	_interpreted_tags = {}
+	_interpreters = {}
 
 	_nonprintable_tags = []
 
@@ -166,20 +387,30 @@ class MediaMetadata:
 	def file_type(self):
 		return self._file_extension
 
+	def assign_interpreter(self, tag: str, interpreter):
+		self._interpreters[tag] = interpreter
+
+	def drop_interpreter(self, tag:str):
+		if tag in self._interpreters:
+			del self._interpreters[tag]
+
 	def interpret(self):
 		i_tags = {}
 		for key in self.keys():
 			values = self._tags[key]
-			try:
-				interpreter = globals()[key]
+			try: 			# try to use an interpreter
+				interpreter = self._interpreters[key] if key in self._interpreters else globals()[key]
 				if callable(interpreter):
 					i_tags[key] = interpreter(values)
 				elif isinstance(interpreter, dict):
 					i_tags[key] = list(map(lambda x:interpreter[x],values))
 				else:
+					i_tags[key] = values 
+			except: 		# no or faulty interpreter
+				try:		# so, try to convert a rational value to decimal form
+					i_tags[key] = list(map(lambda x:r if isinstance((r:=str_to_rational(x)), int) else round(r, 2), values))
+				except:		# no joy, leave the value as is
 					i_tags[key] = values
-			except:
-				i_tags[key] = values
 
 		self._interpreted_tags = i_tags
 

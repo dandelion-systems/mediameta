@@ -21,17 +21,17 @@
 	along with mediameta. If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from mediameta.tags import _TiffTags
-from mediameta.tags import _ExifTags
-from mediameta.tags import _GPSTags
+from .tags import _TiffTags
+from .tags import _ExifTags
+from .tags import _GPSTags
 
-from mediameta.mediametadata import UnsupportedMediaFile
-from mediameta.mediametadata import MediaMetadata
-from mediameta.mediametadata import str_to_rational
-from mediameta.mediametadata import GPS_link
+from .mediametadata import UnsupportedMediaFile
+from .mediametadata import MediaMetadata
+from .mediametadata import str_to_rational
+from .mediametadata import GPS_link
 
-from mediameta.imagemetadata import ImageMetadata
+from .imagemetadata import ImageMetadata
 
-from mediameta.videometadata import VideoMetadata
+from .videometadata import VideoMetadata
 
 __version__ = '0.0.1'

@@ -23,17 +23,17 @@
 
 import os
 
-from mediameta.dataroutines import uint_32
-from mediameta.dataroutines import uint_16
-from mediameta.dataroutines import sint_32
-from mediameta.dataroutines import str_b
+from .dataroutines import uint_32
+from .dataroutines import uint_16
+from .dataroutines import sint_32
+from .dataroutines import str_b
 
-from mediameta.tags import _TiffTags
-from mediameta.tags import _ExifTags
-from mediameta.tags import _GPSTags
+from .tags import _TiffTags
+from .tags import _ExifTags
+from .tags import _GPSTags
 
-from mediameta.mediametadata import UnsupportedMediaFile
-from mediameta.mediametadata import MediaMetadata
+from .mediametadata import UnsupportedMediaFile
+from .mediametadata import MediaMetadata
 
 class ImageMetadata(MediaMetadata):
 

@@ -23,10 +23,10 @@
 
 import os
 
-from mediameta.dataroutines import str_b
+from .dataroutines import str_b
 
-from mediameta.mediametadata import UnsupportedMediaFile
-from mediameta.mediametadata import MediaMetadata
+from .mediametadata import UnsupportedMediaFile
+from .mediametadata import MediaMetadata
 
 class VideoMetadata(MediaMetadata):
 

@@ -90,9 +90,17 @@ Both `ImageMetadata` and `VideoMetadata` are subclasses of `MediaMetadata` which
 
 `interpret()` - calling this function would attempt at converting the tag's values to their human-readable form. This function attemps to locate a dictionary or a function with exactly the same name as the tag. If a dictionary is found, it tries to map the values of the tag to the ones in the dictionary. If a function is found, the tag's value is passed to it and the result is then stored as an interpreted value.
 
-The interpreters (dictionaries and functions) defined in the package are dicumented below. Should you wish to overrride them, or write an interpreter for another tag, just define it in your code prior to calling `interpret()`.
+The interpreters (dictionaries and functions) defined in the package are documented below. Should you wish to overrride them, or write an interpreter for another tag, just define it in your code and register with `assign_interpreter()` prior to calling `interpret()`.
+
+Even if an interpreter for a tag is not available, `interpret()` will attempt to convert rational values to their decimal form, e.g. 1/4 will be converted to 0.25.
 
 `revert_interpretation()` - reverts the tags back to their original values as they were obtained from the media file.
+
+`assign_interpreter(tag: str, interpreter)` - assigns an interpreter for `tag`. `interpreter` must be a dictionary or a function. A dictionary must define a mapping between the tag's values and their human-readable form. Al least, this is the primary goal of interpreters. An interpreter function does the same but with whatever logic the developer thinks is right. It must accept a list of values as an input (even if there is only one value) and return a list as well.
+
+Use it even if there is a default interpreter for a tag. The assignment will override it.
+
+`drop_interpreter(tag: str)` - reverts assignment by `assign_interpreter()`
 
 ## Interpreters reference
 
@@ -115,6 +123,7 @@ GPSSpeedRef | GPSImgDirectionRef | GPSDestBearingRef
 
 Intepreter Function | Action
 --- | ---
+FNumber | Converts a rational value of FNumber to a string 'f/__' with a decimal value following the slash
 GPSLatitude | Converts GPS latitude to dd°mm'ss"N format, e.g. _41°4'0.6"_
 GPSLongitude | Same as GPSLatitude but for the longtitude
 GPSHPositioningError | Converts the error to string in meters, e.g. _24 m_
