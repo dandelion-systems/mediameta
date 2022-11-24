@@ -27,6 +27,8 @@ from .tags import _TiffTags
 from .tags import _ExifTags
 from .tags import _GPSTags
 
+from .dataroutines import str_b
+
 # Interpreters - dictionaries
 Orientation = {
 	1: 'Straight',
@@ -275,12 +277,63 @@ GPSImgDirectionRef = {
 GPSDestBearingRef = GPSImgDirectionRef
 
 # Interpreters - functions
-def str_to_rational(a:str):
+def str_to_rational(a:str) -> (int | float):
 	n, d = list(map(int, a.split('/')))
 	return int(n/d) if n % d == 0 else n/d
 
+def format_rational(x:int | float, num_digits:int = 2) -> str:
+	return str(x) if isinstance(x, int) else str(round(x, num_digits))
+
+def ExifVersion(v):
+	vbytes = v[0]
+	major = str_b(vbytes[0:2],0,2)
+	if major[0] == '0': major = major[1:2]
+	minor = str_b(vbytes[2:4],0,2)
+	if minor[1] == '0': minor = minor[0:1]
+	return [major + '.' + minor, ]
+
+FlashpixVersion = ExifVersion
+InteroperabilityVersion = ExifVersion
+
+def ExposureTime(t):
+	return [t[0] + ' sec', ]
+
+def ShutterSpeedValue(v):
+	return [format_rational(str_to_rational(v[0])) + ' Ev', ]
+
+ApertureValue = ShutterSpeedValue
+ExposureBiasValue = ShutterSpeedValue
+MaxApertureValue = ShutterSpeedValue
+
+def BrightnessValue(a):
+	n, d = list(map(int, a[0].split('/')))
+	if n == 0xFFFFFFFF:
+		return 'Unknown'
+	bv = str(int(n/d)) if n % d == 0 else str(round(n/d,2))
+	return bv + ' Ev'
+
+def FocalLength(f):
+	return [str(str_to_rational(f[0])) + ' mm', ]
+
+def FocalLengthIn35mmFilm(f):
+	return ['Unknown' if f[0] == 0 else str(f[0]) + ' mm', ]
+
+def LensSpecification(s):
+	min_focal_length = 'f min = ' + format_rational(str_to_rational(s[0])) + ' mm'
+	max_focal_length = 'f max = ' + format_rational(str_to_rational(s[1])) + ' mm'
+	try:
+		min_fn_min_lngth = 'f/' + format_rational(str_to_rational(s[2]))
+	except ZeroDivisionError:
+		min_fn_min_lngth = 'F number unknown'
+	try:
+		min_fn_max_lngth = 'f/' + format_rational(str_to_rational(s[3]))
+	except ZeroDivisionError:
+		min_fn_max_lngth = 'F number unknown'
+	#return [min_focal_length, max_focal_length, min_fn_min_lngth, min_fn_max_lngth]
+	return [min_focal_length + ' (' + min_fn_min_lngth + '), ' + max_focal_length + ' (' + min_fn_max_lngth + ')', ]
+
 def FNumber(f):
-	return ['f/' + str((lambda x:r if isinstance((r:=str_to_rational(x)), int) else round(r, 2))(f[0]))]
+	return ['f/' + format_rational(str_to_rational(f[0])), ]
 
 def GPSLatitude(lat):
 	coord = list(map(str, map(str_to_rational, lat)))
@@ -301,6 +354,9 @@ def GPSImgDirection(d):
 	return list(map(lambda x:'{0:.2f}'.format(str_to_rational(x)) + '\xB0', d))
 
 GPSDestBearing = GPSImgDirection
+
+def GPSVersionID(id):
+	return [str(id[0]) + '.' + str(id[1]) + '.' + str(id[2]) + '.' + str(id[3]), ]
 
 # GPS Maps
 # Sample results:

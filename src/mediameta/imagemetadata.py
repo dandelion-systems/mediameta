@@ -284,7 +284,7 @@ class ImageMetadata(MediaMetadata):
 
 				#values.append(str_b(data, where_to_look, num_values, encoding))
 				values.append(data[where_to_look:where_to_look+num_values])
-				if tag not in self._nonprintable_tags:
+				if tag not in self._nonprintable_tags + ['ExifVersion', 'FlashpixVersion', 'InteroperabilityVersion']:
 					self._nonprintable_tags.append(tag)
 				
 			case 9: # 9 - slong, 32 bit signed int.

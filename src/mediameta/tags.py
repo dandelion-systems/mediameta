@@ -97,7 +97,7 @@ _ExifTags = {
 	0x9201: 'ShutterSpeedValue',
 	0x9202: 'ApertureValue',
 	0x9203: 'BrightnessValue',
-	0x9204: 'ExposureBias',
+	0x9204: 'ExposureBiasValue',
 	0x9205: 'MaxApertureValue',
 	0x9206: 'SubjectDistance',
 	0x9207: 'MeteringMode',

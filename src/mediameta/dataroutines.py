@@ -23,37 +23,37 @@
 from typing import Literal
 from struct import unpack_from
 
-def uint_32(byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
+def uint_32(byte_array:bytes, start_index:int, byte_order:Literal['little','big']) -> int:
 	format = '<' if byte_order == 'little' else '>'
 	format += 'I'
 	return unpack_from(format, buffer=byte_array, offset=start_index)[0]
 
-def uint_16(byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
+def uint_16(byte_array:bytes, start_index:int, byte_order:Literal['little','big']) -> int:
 	format = '<' if byte_order == 'little' else '>'
 	format += 'H'
 	return unpack_from(format, buffer=byte_array, offset=start_index)[0]
 
-def uint_8(byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
+def uint_8(byte_array:bytes, start_index:int, byte_order:Literal['little','big']) -> int:
 	format = '<' if byte_order == 'little' else '>'
 	format += 'B'
 	return unpack_from(format, buffer=byte_array, offset=start_index)[0]
 
-def sint_32(byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
+def sint_32(byte_array:bytes, start_index:int, byte_order:Literal['little','big']) -> int:
 	format = '<' if byte_order == 'little' else '>'
 	format += 'i'
 	return unpack_from(format, buffer=byte_array, offset=start_index)[0]
 
-def sint_16(byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
+def sint_16(byte_array:bytes, start_index:int, byte_order:Literal['little','big']) -> int:
 	format = '<' if byte_order == 'little' else '>'
 	format += 'h'
 	return unpack_from(format, buffer=byte_array, offset=start_index)[0]
 
-def sint_8(byte_array:bytes, start_index:int, byte_order:Literal['little','big']):
+def sint_8(byte_array:bytes, start_index:int, byte_order:Literal['little','big']) -> int:
 	format = '<' if byte_order == 'little' else '>'
 	format += 'b'
 	return unpack_from(format, buffer=byte_array, offset=start_index)[0]
 
-def str_b(byte_array:bytes, start_index:int, byte_count:int, encoding:str):
+def str_b(byte_array:bytes, start_index:int, byte_count:int, encoding:str = 'utf_8') -> str:
 	bytes_str = unpack_from(str(byte_count)+'s', buffer=byte_array, offset=start_index)[0]
 	# rarely, a zero terminator would penetrate the result (even in the middle of the string)
 	# due to a bug in photo software. And in any case, strings are 0-terminated, so we
