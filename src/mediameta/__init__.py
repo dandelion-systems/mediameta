@@ -28,6 +28,7 @@ from .tags import _GPSTags
 from .mediametadata import UnsupportedMediaFile
 from .mediametadata import MediaMetadata
 from .mediametadata import str_to_rational
+from .mediametadata import format_rational
 from .mediametadata import GPS_link
 
 from .imagemetadata import ImageMetadata

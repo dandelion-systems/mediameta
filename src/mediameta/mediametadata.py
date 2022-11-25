@@ -358,30 +358,49 @@ GPSDestBearing = GPSImgDirection
 def GPSVersionID(id):
 	return [str(id[0]) + '.' + str(id[1]) + '.' + str(id[2]) + '.' + str(id[3]), ]
 
-# GPS Maps
-# Sample results:
-# https://www.google.com/maps/place/41°04'0.6"N29°01'9.46"E
-# https://yandex.com/maps/?ll=float,float&pt=float,float&z=12&l=map
-# 	see https://yandex.com/dev/yandex-apps-launch/maps/doc/concepts/yandexmaps-web.html
 def GPS_link(lat:str, lat_ref:str, lng:str, lng_ref:str, service:str='google') -> str:
+	'''
+		GPS Maps links - returns an url to a maps service with a pin at the specified location
+
+		lat and lng are latitude and longitude respectively in the form 41°04'0.6"
+
+		lat_ref and lng_ref are references for lat and lng, either 'N'/'S' or 'E'/'W' respectively
+		
+		service is one of 'google', 'yandex', 'osm' or 'bing'
+
+		Sample results:
+		https://www.google.com/maps/place/41.066833,29.019294
+		https://yandex.com/maps/?ll=29.019294,41.066833&pt=29.019294,41.066833&z=17&l=map
+		https://www.openstreetmap.org/?mlat=41.066833&mlon=29.019294#map=17/41.066833/29.019294
+		https://www.bing.com/maps?cp=41.066833~long&lvl=17&sp=point.41.066833_29.019294_Photo%20GPS%20location
+	'''
+	url = ''
+
+	d, ms = lat.split('\xB0')
+	m, s = ms.split('\'')
+	s, _ = s.split('"')
+	latitude = float(d) + float(m)/60 + float(s)/3600
+	if lat_ref == 'S': latitude = -latitude
+
+	d, ms = lng.split('\xB0')
+	m, s = ms.split('\'')
+	s, _ = s.split('"')
+	longitude = float(d) + float(m)/60 + float(s)/3600
+	if lng_ref == 'W': longitude = -longitude
+
 	match service:
 		case 'google':
-			return 'https://www.google.com/maps/place/' + lat + lat_ref + lng + lng_ref
+			url = f'https://www.google.com/maps/place/{latitude},{longitude}'
 		case 'yandex':
-			d, ms = lat.split('\xB0')
-			m, s = ms.split('\'')
-			s, _ = s.split('"')
-			latitude = float(d) + float(m)/60 + float(s)/3600
-			if lat_ref == 'S': latitude = -latitude
-			d, ms = lng.split('\xB0')
-			m, s = ms.split('\'')
-			s, _ = s.split('"')
-			longtitude = float(d) + float(m)/60 + float(s)/3600
-			if lng_ref == 'W': longtitude = -longtitude
-			coord = str(longtitude) + ',' + str(latitude)
-			return 'https://yandex.com/maps/?ll=' + coord + '&pt=' + coord + '&z=17'
+			url = f'https://yandex.com/maps/?ll={longitude},{latitude}&pt={longitude},{latitude}&z=17&l=map'
+		case 'osm':
+			url = f'https://www.openstreetmap.org/?mlat={latitude}&mlon={longitude}#map=17/{latitude}/{longitude}'
+		case 'bing':
+			url = f'https://www.bing.com/maps?cp={latitude}~{longitude}&lvl=17&sp=point.{latitude}_{longitude}_Photo%20GPS%20location'
 		case _:
 			raise ValueError
+
+	return url
 
 class UnsupportedMediaFile(Exception):
 	pass

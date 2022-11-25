@@ -123,6 +123,18 @@ GPSSpeedRef | GPSImgDirectionRef | GPSDestBearingRef
 
 Intepreter Function | Action
 --- | ---
+ExifVersion | Returns a version string, e.g. _2.3_
+FlashpixVersion | Returns a version string
+InteroperabilityVersion | Returns a version string
+ExposureTime | Returns a rational in seconds
+ShutterSpeedValue | Returns an APEX value, e.g. _2.0 Ev_
+ApertureValue | Returns an APEX value
+ExposureBiasValue | Returns an APEX value
+MaxApertureValue | Returns an APEX value
+BrightnessValue | Returns an APEX value or _Unknown_ if 0xFFFFFFFF is found
+FocalLength | Returns a focal length in mm, e.g. _4 mm_
+FocalLengthIn35mmFilm | Returns a focal length in mm
+LensSpecification | Returns a string with min and max focal length and min Fnumber for both, e.g. _f min = 18 (f/1.8), f max = 24 (f/1.8)_
 FNumber | Converts a rational value of FNumber to a string 'f/__' with a decimal value following the slash
 GPSLatitude | Converts GPS latitude to dd°mm'ss"N format, e.g. _41°4'0.6"_
 GPSLongitude | Same as GPSLatitude but for the longtitude
@@ -131,6 +143,7 @@ GPSAltitude | Converts the altitude to string in meters, e.g. _156 m_
 GPSSpeed | Returns the speed as formatted string with float value
 GPSImgDirection | Returns the direction as formatted string with float value and degrees sign at the end ('°', '\xB0')
 GPSDestBearing | Same as GPSImgDirection but for the bearing
+GPSVersionID | 
 
 ## Function reference
 
@@ -138,12 +151,18 @@ There are a few useful functions that come predefined with the package, should y
 
 `str_to_rational(a:str)` - converts a '_numerator_/_denominator_' string to `float` or `int` if the the numbers are exact multiples
 
-`GPS_link(lat:str, lat_ref:str, lng:str, lng_ref:str, service:str='google')` - returns the maps link for the supplied coordinates. The coordinates must be obtained after calling `interpret()`. Google Maps and Yandex Maps are supported. Samples follow:
+`format_rational(x:int | float, num_digits:int = 2)` - returns a string containing an integer value or a floating point value rounded to `num_digits` decimal points.
+
+`GPS_link(lat:str, lat_ref:str, lng:str, lng_ref:str, service:str='google')` - returns the maps link for the supplied coordinates. The coordinates must be obtained after calling `interpret()`. Supported providers are Google, Yandex, OpenStreetMaps and Microsoft Bing. Samples follow:
 
 	google_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E')
-	yandex_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E', 'yandex') 
+	yandex_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E', 'yandex')
+	openst_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E', 'osm')
+	msbing_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E', 'bing') 
 
 Link | Sample result
 --- | ---
-google_maps | https://www.google.com/maps/place/41°4'0.6"N29°1'9.46"E
-yandex_maps | https://yandex.com/maps/?ll=29.019294444444444,41.066833333333335&pt=29.019294444444444,41.066833333333335&z=17
+google_maps | https://www.google.com/maps/place/41.066833,29.019294
+yandex_maps | https://yandex.com/maps/?ll=29.019294,41.066833&pt=29.019294,41.066833&z=17&l=map
+openst_maps | https://www.openstreetmap.org/?mlat=41.066833&mlon=29.019294#map=17/41.066833/29.019294
+msbing_maps | https://www.bing.com/maps?cp=41.066833~long&lvl=17&sp=point.41.066833_29.019294_Photo%20GPS%20location
