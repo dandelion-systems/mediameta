@@ -2,7 +2,7 @@
 
 `mediameta` provides `ImageMetadata` and `VideoMetadata` classes which facilitate extracting metadata information from media files. `mediameta` was written and will be maintained without thrid-party image manupulation libraries or modules as they might be licensed. `mediameta` is distributed under GNU General Public License.
 
-Install it from PyPi with
+Install it from PyPi with 
 
 	pip install mediameta
 
