@@ -2,6 +2,12 @@
 
 `mediameta` provides `ImageMetadata` and `VideoMetadata` classes which facilitate extracting metadata information from media files. `mediameta` was written and will be maintained without thrid-party image manupulation libraries or modules as they might be licensed. `mediameta` is distributed under GNU General Public License.
 
+Install it from PyPi with
+
+	pip install mediameta
+
+See https://github.com/dandelion-systems/mediautilities for usage samples.
+
 Copyright 2022 Dandelion Systems <dandelion.systems at gmail.com>
 
 `mediameta` was inspired and partially based on:
@@ -80,7 +86,7 @@ Both `ImageMetadata` and `VideoMetadata` are subclasses of `MediaMetadata` which
 
 `__str__()` - casts the object to `str` type returning a string of tab separated metadata key/value pairs found in the media file each followed by a line separator. The format of values follows the logic documented for `__getitem__()`. Useful to import the data into a spreadsheet. Or if you are creaing a command line tool, the output can be fed to `awk` or `grep` for further processing.
 
-> Note: there are non-printable tags which will not show in the output. The tags of UNDEFINED type (== 7) are such as well as some others that typically contain binary data. For instance, MakerNote and UserComment. Tags with typically long outputs will not show either though they might be perfectly printable like XMLPacket and StripOffsets. If you wish to access these, use `[]` to get them directly from the class inctance.
+> Note: there are non-printable tags which will not show in the output. The tags of UNDEFINED type (== 7) are such as well as some others that typically contain binary data. For instance, MakerNote and UserComment. Tags with typically long outputs will not show either though they might be perfectly printable like XMLPacket and StripOffsets. If you wish to access these, use `[]` to get them directly from the class instance.
 
 `all()` - a generator yielding tuples of `(key, value)` found in the media file. The format of values follows the logic documented for `__getitem__()`.
 
