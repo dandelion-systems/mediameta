@@ -19,6 +19,8 @@
 
 	You should have received a copy of the GNU General Public License
 	along with mediameta. If not, see <http://www.gnu.org/licenses/>.
+
+	SPDX-License-Identifier: GPL-3.0-or-later
 '''
 import os
 
@@ -336,22 +338,22 @@ def FNumber(f):
 	return ['f/' + format_rational(str_to_rational(f[0])), ]
 
 def GPSLatitude(lat):
-	coord = list(map(str, map(str_to_rational, lat)))
+	coord = list(map(lambda x:format_rational(str_to_rational(x)), lat))
 	return [coord[0] + '\xB0' + coord[1] + '\'' + coord[2] + '"', ]
 
 GPSLongitude = GPSLatitude
 
 def GPSHPositioningError(err):
-	return list(map(lambda x:str(str_to_rational(x)) + ' m', err))
+	return list(map(lambda x:format_rational(str_to_rational(x)) + ' m', err))
 
 def GPSAltitude(alt):
-	return list(map(lambda x:str(str_to_rational(x)) + ' m', alt))
+	return list(map(lambda x:format_rational(str_to_rational(x)) + ' m', alt))
 
 def GPSSpeed(s):
-	return list(map(lambda x:'{0:.2f}'.format(str_to_rational(x)), s))
+	return list(map(lambda x:format_rational(str_to_rational(x)), s))
 
 def GPSImgDirection(d):
-	return list(map(lambda x:'{0:.2f}'.format(str_to_rational(x)) + '\xB0', d))
+	return list(map(lambda x:format_rational(str_to_rational(x)) + '\xB0', d))
 
 GPSDestBearing = GPSImgDirection
 
