@@ -2,7 +2,7 @@
 
 # Simple script to build and install a python module
 # Copyright 2023 Dandelion Systems <dandelion.systems@gmail.com>
-# SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-License-Identifier: MIT
 
 # Things to mind before running this script 
 # 1. Make sure python3-build and twine packages are installed, if not - install them

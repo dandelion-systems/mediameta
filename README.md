@@ -165,10 +165,10 @@ There are a few useful functions that come predefined with the package, should y
 
 `GPS_link(lat:str, lat_ref:str, lng:str, lng_ref:str, service:str='google')` - returns the maps link for the supplied coordinates. The coordinates must be obtained after calling `interpret()`. Supported providers are Google, Yandex, OpenStreetMaps and Microsoft Bing. Samples follow:
 
-	google_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E')
-	yandex_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E', 'yandex')
-	openst_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E', 'osm')
-	msbing_maps = GPS_link('41°4'0.6"', 'N', '29°1'9.46"', 'E', 'bing') 
+	google_maps = GPS_link('41°4'0.6"', 'N', '29°1\'9.46"', 'E')
+	yandex_maps = GPS_link('41°4'0.6"', 'N', '29°1\'9.46"', 'E', 'yandex')
+	openst_maps = GPS_link('41°4'0.6"', 'N', '29°1\'9.46"', 'E', 'osm')
+	msbing_maps = GPS_link('41°4'0.6"', 'N', '29°1\'9.46"', 'E', 'bing') 
 
 Link | Sample result
 --- | ---
