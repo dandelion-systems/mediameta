@@ -6,6 +6,10 @@ Install it from PyPi with
 
 	pip install mediameta
 
+If you run Python in a managed environment, you should have created a venv prior to attempting the installation. If the venv is in ~/venv, the installtion command would look like
+
+	~/venv/bin/pip install mediameta
+	
 See https://github.com/dandelion-systems/mediautilities for usage samples.
 
 Copyright 2022 Dandelion Systems <dandelion.systems at gmail.com>

@@ -88,7 +88,7 @@ class ImageMetadata(MediaMetadata):
 			#print('Bad SOI marker in ' + file_name +'. Not a valid JPEG.')
 			return exif_raw_data
 
-		# APP1 EXIF (0xFFE, big endian) is mandatory FIRST marker after SOI, 
+		# APP1 EXIF (0xFFE1, big endian) is mandatory FIRST marker after SOI, 
 		# see (EXIF 2.3, p4.5.5, Table 2 - page 6). But we search for it to 
 		# jump over APP0 JFIF (0xFFE0) marker in case it is present.
 		offset = 2
